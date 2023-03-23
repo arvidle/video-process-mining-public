@@ -8,5 +8,6 @@ We will also provide instructions to fit the implementation to a custom use case
 
 ## Data availability
 
-The training datasets, weights of finetuned models and inference results for the five days selected for the case study are available on Zenodo: https://doi.org/10.5281/zenodo.7763838
-These provided zipfile needs to be unpacked in the root directory of this repository.
+The training datasets, weights of finetuned models and inference results for the five days selected for the case study are available on Zenodo: https://doi.org/10.5281/zenodo.7763838  
+
+The provided zipfile needs to be unpacked in the root directory of this repository.
