@@ -1,0 +1,1114 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <title>vatic.js - A pure Javascript video annotation tool</title>
+    <meta name="description" content="A Javascript tool that can be used to easily annotate any video in your browser, without having to install anything.">
+    <link rel="stylesheet" href="./style.css" />
+    <style type="text/css">
+    </style>
+  </head>
+  <body>
+    <h1>vatic.js - A pure Javascript video annotation tool</h1>
+
+    <ol>
+      <li>
+        <p>This tool can be used to easily annotate a video, without having to install anything. Interpolation between annotated frames is performed for visualization.</p>
+        <p>This tool works in Chrome, Firefox, and Safari.</p>
+      </li>
+      <li>
+        <p style="font-weight: bold;">To start a new video annotation, select a video file: <input type="file" id="videoFile" accept="video/*" /></p>
+        <p style="display: None;">To resume a previous annotation, select a frames zip archive: <input type="file" id="zipFile" accept=".zip" /></p>
+        <p style="font-weight: bold;">Please compile the full video file path or a video identifier: <input type="text" id="videoFilePath" placeholder="/file/path" /></p>
+        <p class="output" id="videoDimensions"></p>
+        <p class="output" id="extractionProgress"></p>
+      </li>
+      <li style="display: None;">
+        <p>Download the extracted frames zip archive: <input type="button" id="downloadFrames" value="Get frames zip archive" disabled="disabled" /></p>
+      </li>
+      <li>
+        <p>Optional: Load an existing JSON annotation file: <input type="file" id="jsonFile" accept=".json" disabled="disabled" /></p>
+        <p>This is useful for example if:</p>
+        <ul>
+          <li>You are resuming a previous annotation.</li>
+          <li>You already have a first version of your automatic object detector, which you want to improve by manually correcting its errors.</li>
+        </ul>
+      </li>
+      <p>
+        <p>Manually annotate the frame sequence:</p>
+        <p>To create a new bounding box, first press "<span style="font-weight: bold;">+</span>" then left click on two locations in the video corresponding to the corners of the box ("Esc" to undo).</p>
+        <p>Tips:
+          <ul>
+            <li>The visibility of each object can be toogled with its visiblity checkbox under the video. [Affects annotations]</li>
+            <li>Click on a bounding box to activate it. Non-active bounding boxes are grayish.</li>
+            <li>The active bounding box is shown on top of the others.</li>
+            <li>Zoom in with your browser to place the bounding boxes more accurately.</li>
+          </ul>
+        </p>
+        <p>Shortcuts:
+          <ul>
+            <li>Use the spacebar to play/pause the video, and the left and right arrows to navigate frame by frame.</li>
+            <li>Press "<strong>h</strong>" to hide/show all bounding boxes except the active one. [Doesn't affect annotations]</li>
+            <li>Press "<strong>d</strong>" to enable/disable the dark mode.</li>
+            <li><span style="color: red; font-weight: bold;">NEW</span> Press "<strong>s</strong>" to annotate the current position and behaviour of the active buonding box (without changing it).</li>
+            <li>Press "<strong>[</strong>" / "<strong>]</strong>" to jump to the previous / the next annotation of the active buonding box.</li>
+            <li><span style="color: red; font-weight: bold;">NEW</span> Press "<strong>,</strong>" / "<strong>.</strong>" to jump to the previous / the next mid point annotation of the active buonding box.</li>
+          </ul>
+        </p>
+        <p>Legend:
+          <ul>
+            <li><div class="bbox bbox-legend active" style=""></div> Inactive bounding box</li>
+            <li><div class="bbox bbox-legend active" style="border-color: red;"></div> Annotated bounding box</li>
+            <li><div class="bbox bbox-legend active" style="border-color: red; border-style: dotted"></div> Interpolated bounding box</li>
+            <li><div class="bbox bbox-legend active" style="border-color: red; border-style: dashed"></div> Last annotated position</li>
+          </ul>
+        </p>
+        <div id="doodle">
+          <video id="video" style="position: absolute; z-index: -1;"></video>
+          <canvas id="canvas"></canvas>
+        </div>
+        <p style="margin: 0.6em 0 0.4em;">
+          <input type="button" id="play" value="Play" disabled="disabled" /><input type="button" id="pause" value="Pause" disabled="disabled" style="display: none;" />
+          <span class="output" id="currentFrame" style="display: inline-block; margin-left: 7px;"></span>
+        </p>
+        <div id="slider"></div>
+        <p style="display: none;"><label for="speed">Speed multiplier: </label><input type="text" id="speed" value="1.00" size="4" /></p>
+        <div id="objects"></div>
+      </li>
+      <li>
+        <p><a href="#" download="output.json" id="generateJson"><input type="button" id="generateButton" value="Generate" disabled="disabled" /></a> the JSON annotations file.</p>
+      </li>
+    </ol>
+
+    <a href="https://github.com/stefanopini/vatic.js" class="github-corner" aria-label="View source on Github"><svg width="80" height="80" viewBox="0 0 250 250" style="fill:#FD6C6C; color:#fff; position: absolute; top: 0; border: 0; right: 0;" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a><style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style>
+
+    <script type="text/javascript" src="dist/compatibility.js"></script>
+    <script type="text/javascript" src="dist/jszip.js"></script>
+    <!-- script type="text/javascript" src="dist/StreamSaver.js"></script-->
+    <script type="text/javascript" src="dist/polyfill.js"></script>
+    <script type="text/javascript" src="dist/jsfeat.js"></script>
+    <script type="text/javascript" src="dist/nudged.js"></script>
+    <script type="text/javascript" src="dist/jquery-1.12.4.js"></script>
+    <script type="text/javascript" src="dist/jquery-ui.js"></script>
+
+    <script type="text/javascript" src="vatic.js"></script>
+    <script type="text/javascript">
+      "use strict";
+
+      function beforeunload(e) {
+        return 'Are you sure to exit? Unsaved progress will be lost.';
+      }
+
+      window.onbeforeunload = beforeunload;
+
+      let config = {
+        stepSize: 1.0,
+        playbackRate: 1.0,
+
+        // Format of the extracted frames
+        imageMimeType: 'image/jpeg',
+        imageExtension: '.jpg',
+
+        // Name of the extracted frames zip archive
+        framesZipFilename: 'extracted-frames.zip',
+
+        // log on console
+        consoleLog: false
+      };
+
+      let doodle = document.querySelector('#doodle');
+      let video = document.querySelector('#video');
+      // let video = document.createElement('video');
+      let canvas = document.querySelector('#canvas');
+      let ctx = canvas.getContext('2d');
+      let videoFile = document.querySelector('#videoFile');
+      let videoFileName = "";
+      let fullVideoFilePath = document.querySelector('#videoFilePath');
+      let zipFile = document.querySelector('#zipFile');
+      let jsonFile = document.querySelector('#jsonFile');
+      let videoDimensionsElement = document.querySelector('#videoDimensions');
+      let extractionProgressElement = document.querySelector('#extractionProgress');
+      let downloadFramesButton = document.querySelector('#downloadFrames');
+      let playButton = document.querySelector('#play');
+      let currentFrameElement = document.querySelector('#currentFrame');
+      let pauseButton = document.querySelector('#pause');
+      let speedInput = document.querySelector('#speed');
+      let sliderElement = document.querySelector('#slider');
+      let generateJsonLink = document.querySelector('#generateJson');
+      let generateJsonButton = document.querySelector('#generateButton');
+
+      let framesManager = new FramesManager();
+      let annotatedObjectsTracker = new AnnotatedObjectsTracker(framesManager);
+
+      // let colors = ['yellow', 'red', 'lightgreen', 'cyan', 'orange', 'fuchsia', 'white', 'blue'];
+      let colors = ['rgb(255,255,0)', 'rgb(255,0,0)', 'rgb(144,238,144)', 'rgb(0,255,255)', 'rgb(255,165,0)', 'rgb(255,0,255)', 'rgb(255,255,255)', 'rgb(0,0,255)'];
+      let colors_bg = ['rgba(255,255,0,0.2)', 'rgba(255,0,0,0.2)', 'rgba(144,238,144,0.2)', 'rgba(0,255,255,0.2)', 'rgba(255,165,0,0.2)', 'rgba(255,0,255,0.2)', 'rgba(255,255,255,0.2)', 'rgba(0,0,255,0.2)'];
+      let colors_hl = ['rgba(255,255,0,0.75)', 'rgba(255,0,0,0.75)', 'rgba(144,238,144,0.75)', 'rgba(0,255,255,0.75)', 'rgba(255,165,0,0.75)', 'rgba(255,0,255,0.75)', 'rgba(255,255,255,0.75)', 'rgba(0,0,255,0.75)'];
+      let currentZindex = 1;
+      let currentVisibility = true;
+      let darkMode = false;
+
+      let slider = {
+        init: function(min, max, onChange) {
+          $(sliderElement).slider('option', 'min', min);
+          $(sliderElement).slider('option', 'max', max);
+          $(sliderElement).on('slidestop', (e, ui) => {
+            onChange(ui.value);
+          });
+          $(sliderElement).slider('enable');
+        },
+        setPosition: function(frameNumber) {
+          $(sliderElement).slider('option', 'value', frameNumber);
+        },
+        reset: function() {
+          $(sliderElement).slider({disabled: true});
+        }
+      };
+      slider.reset();
+
+      video.addEventListener('timeupdate', function (event) {
+        // if (player.isPlaying === true) {
+          player.nextFrame();
+        // }
+        // canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+      });
+
+      let player = {
+        currentFrame: 0,
+        isPlaying: false,
+        isReady: false,
+        timeout: null,
+        viewed: false,
+
+        initialize: function() {
+          this.currentFrame = 0;
+          this.isPlaying = false;
+          this.isReady = false;
+
+          playButton.disabled = true;
+          playButton.style.display = 'inline-block';
+          pauseButton.disabled = true;
+          pauseButton.style.display = 'none';
+        },
+
+        ready: function() {
+          this.isReady = true;
+
+          playButton.disabled = false;
+          fullVideoFilePath.focus();
+        },
+
+        seek: function(frameNumber) {
+          if (!this.isReady) {
+            return;
+          }
+
+          this.pause();
+          this.pause();  // runned multiple times to be "sure" that the video is paused
+          this.pause();  // runned multiple times to be "sure" that the video is paused
+          this.pause();  // runned multiple times to be "sure" that the video is paused
+          this.pause();  // runned multiple times to be "sure" that the video is paused
+
+          if (frameNumber >= 0 && frameNumber < framesManager.frames.totalFrames()) {
+            framesManager.frames.seekVideoAndGetFrame(frameNumber);
+            this.drawFrame(frameNumber);
+            this.currentFrame = frameNumber;
+            currentFrameElement.innerHTML = '' + this.currentFrame;
+            this.viewed = false;
+          }
+        },
+
+        play: function() {
+          if (!this.isReady) {
+            return;
+          }
+
+          if (this.viewed === true) {
+            this.viewed = false;
+            this.currentFrame = 0;
+            clearAllDOMAnnotatedObjects();
+            $('#objects select').each(function() {this.value='other';});
+            $('#objects input.visible-flag').each(function(){$(this).prop('checked', true);});
+            framesManager.frames.seekVideoAndGetFrame(0);
+          }
+
+          this.isPlaying = true;
+
+          playButton.disabled = true;
+          playButton.style.display = 'none';
+          pauseButton.disabled = false;
+          pauseButton.style.display = 'inline-block';
+
+          // this.nextFrame();
+          video.play();
+        },
+
+        pause: function() {
+          if (!this.isReady) {
+            return;
+          }
+
+          video.pause();
+
+          this.isPlaying = false;
+
+          pauseButton.disabled = true;
+          pauseButton.style.display = 'none';
+          playButton.disabled = false;
+          playButton.style.display = 'inline-block';
+        },
+
+        toogle: function() {
+          if (!this.isPlaying) {
+            this.play();
+          } else {
+            this.pause();
+          }
+        },
+
+        nextFrame: function() {
+          if (!this.isPlaying) {
+            return;
+          }
+
+          if (this.currentFrame + 1>= framesManager.frames.totalFrames()) {
+            this.done();
+            return;
+          }
+
+          // let nextFrameNumber = this.currentFrame + 1;
+          let nextFrameNumber = Math.round(video.currentTime / config.stepSize);
+          // console.log('\n\n'+nextFrameNumber+'\n\n');
+
+          this.drawFrame(nextFrameNumber).then(() => {
+            // this.currentFrame++;
+            this.currentFrame = nextFrameNumber;
+            currentFrameElement.innerHTML = '' + this.currentFrame;
+          });
+        },
+
+        drawFrame: function(frameNumber) {
+          return new Promise((resolve, _) => {
+              annotatedObjectsTracker.getFrameWithObjects(frameNumber).then((frameWithObjects) => {
+                  // renderDashedAllDOMAnnotatedObjects();
+                  for (let i = 0; i < annotatedObjectsTracker.annotatedObjects.length; i++) {
+                      let annotatedObject = annotatedObjectsTracker.annotatedObjects[i];
+                      if (annotatedObject.get(frameNumber) != null) {
+                          let annotatedFrame = annotatedObject.get(frameNumber);
+                          annotatedObject.dom.style.width = annotatedFrame.bbox.width + 'px';
+                          annotatedObject.dom.style.height = annotatedFrame.bbox.height + 'px';
+                          annotatedObject.dom.style.left = annotatedFrame.bbox.x + 'px';
+                          annotatedObject.dom.style.top = annotatedFrame.bbox.y + 'px';
+                          // annotatedObject.dom.style.color = colors[i % colors.length];
+                          annotatedObject.dom.style.borderColor = colors[i % colors.length];
+                          annotatedObject.dom.style.backgroundColor = colors_bg[i % colors_bg.length];
+                          annotatedObject.controls.css({'border-color': colors[i % colors.length]});
+                          annotatedObject.dom.style.borderStyle = 'solid';
+                          if (annotatedFrame.isVisible()) {
+                              annotatedObject.dom.style.display = 'block';
+                              annotatedObject.visible.prop('checked', true);
+                          } else {
+                              annotatedObject.dom.style.display = 'none';
+                              annotatedObject.visible.prop('checked', false);
+                          }
+
+                          annotatedObject.behaviour[0].value = annotatedFrame.behaviour;
+                      }
+                      else {
+                          if (annotatedObject.frames[0].frameNumber > frameNumber) {
+                              // console.log('removing...');
+                              // must not exist (still not annotated)
+                              clearDOMAnnotatedObject(i);
+                          }
+                          else if (annotatedObject.frames.length === 1) {
+                              // console.log('dashing...');
+                              // must be dashed
+                              let annotatedFrame = annotatedObject.get(annotatedObject.frames[0].frameNumber);
+                              annotatedObject.dom.style.width = annotatedFrame.bbox.width + 'px';
+                              annotatedObject.dom.style.height = annotatedFrame.bbox.height + 'px';
+                              annotatedObject.dom.style.left = annotatedFrame.bbox.x + 'px';
+                              annotatedObject.dom.style.top = annotatedFrame.bbox.y + 'px';
+                              // annotatedObject.dom.style.color = colors[i % colors.length];
+                              annotatedObject.dom.style.borderColor = colors[i % colors.length];
+                              annotatedObject.dom.style.backgroundColor = colors_bg[i % colors_bg.length];
+                              annotatedObject.controls.css({'border-color': colors[i % colors.length]});
+                              annotatedObject.dom.style.borderStyle = 'dashed';
+                              if (annotatedFrame.isVisible()) {
+                                  annotatedObject.dom.style.display = 'block';
+                                  annotatedObject.visible.prop('checked', true);
+                              } else {
+                                  annotatedObject.dom.style.display = 'none';
+                                  annotatedObject.visible.prop('checked', false);
+                              }
+
+                              annotatedObject.behaviour[0].value = annotatedFrame.behaviour;
+                          }
+
+                          else if (annotatedObject.frames.length > 1) {
+                              // interpolation
+                              //console.log('interpolation...');
+                              let prevFrame = annotatedObject.frames[0];
+                              let nextFrame = annotatedObject.frames[annotatedObject.frames.length - 1];
+                              for (let j = 0; j < annotatedObject.frames.length; j++) {
+                                  if (annotatedObject.frames[j].frameNumber < frameNumber &&
+                                      annotatedObject.frames[j].frameNumber > prevFrame.frameNumber)
+                                      prevFrame = annotatedObject.frames[j];
+                                  if (annotatedObject.frames[j].frameNumber > frameNumber &&
+                                      annotatedObject.frames[j].frameNumber < nextFrame.frameNumber)
+                                      nextFrame = annotatedObject.frames[j];
+                              }
+
+                              if (config.consoleLog === true)
+                                console.log(frameNumber, annotatedObject, prevFrame, nextFrame);
+
+                              if (nextFrame.frameNumber > frameNumber && prevFrame.frameNumber < frameNumber && prevFrame.visible === true) {
+                                  // interpolation
+                                  let bbox = new BoundingBox(0, 0, 0, 0);
+                                  let nSteps = nextFrame.frameNumber - prevFrame.frameNumber;
+                                  bbox.x = (prevFrame.bbox.x * (nextFrame.frameNumber - frameNumber) + nextFrame.bbox.x * (frameNumber - prevFrame.frameNumber)) / nSteps;
+                                  bbox.y = (prevFrame.bbox.y * (nextFrame.frameNumber - frameNumber) + nextFrame.bbox.y * (frameNumber - prevFrame.frameNumber)) / nSteps;
+                                  bbox.width = (prevFrame.bbox.width * (nextFrame.frameNumber - frameNumber) + nextFrame.bbox.width * (frameNumber - prevFrame.frameNumber)) / nSteps;
+                                  bbox.height = (prevFrame.bbox.height * (nextFrame.frameNumber - frameNumber) + nextFrame.bbox.height * (frameNumber - prevFrame.frameNumber)) / nSteps;
+
+                                  annotatedObject.dom.style.display = 'block';
+                                  annotatedObject.dom.style.width = bbox.width + 'px';
+                                  annotatedObject.dom.style.height = bbox.height + 'px';
+                                  annotatedObject.dom.style.left = bbox.x + 'px';
+                                  annotatedObject.dom.style.top = bbox.y + 'px';
+                                  // annotatedObject.dom.style.color = colors[i % colors.length];
+                                  annotatedObject.dom.style.borderColor = colors[i % colors.length];
+                                  annotatedObject.dom.style.backgroundColor = colors_bg[i % colors_bg.length];
+                                  annotatedObject.controls.css({'border-color': colors[i % colors.length]});
+                                  annotatedObject.dom.style.borderStyle = 'dotted';
+                                  annotatedObject.visible.prop('checked', true);
+
+                                  annotatedObject.behaviour[0].value = prevFrame.behaviour;
+                              }
+                              else if (prevFrame.frameNumber < frameNumber && prevFrame.frameNumber === nextFrame.frameNumber) {
+                                  // there are not future frames. Using the last annotated frame
+                                  annotatedObject.dom.style.display = 'block';
+                                  annotatedObject.dom.style.width = prevFrame.bbox.width + 'px';
+                                  annotatedObject.dom.style.height = prevFrame.bbox.height + 'px';
+                                  annotatedObject.dom.style.left = prevFrame.bbox.x + 'px';
+                                  annotatedObject.dom.style.top = prevFrame.bbox.y + 'px';
+                                  // annotatedObject.dom.style.color = colors[i % colors.length];
+                                  annotatedObject.dom.style.borderColor = colors[i % colors.length];
+                                  annotatedObject.dom.style.backgroundColor = colors_bg[i % colors_bg.length];
+                                  annotatedObject.controls.css({'border-color': colors[i % colors.length]});
+                                  annotatedObject.dom.style.borderStyle = 'dotted';
+                                  if (prevFrame.isVisible()) {
+                                      annotatedObject.dom.style.display = 'block';
+                                      annotatedObject.visible.prop('checked', true);
+                                  } else {
+                                      annotatedObject.dom.style.display = 'none';
+                                      annotatedObject.visible.prop('checked', false);
+                                  }
+
+                                  annotatedObject.behaviour[0].value = prevFrame.behaviour;
+                              }
+                          }
+                      }
+                      $(annotatedObject.dom).children(':eq(9)').text(annotatedObject.behaviour[0].value);
+                  }
+
+                  let shouldHideOthers = frameWithObjects.objects.some(o => o.annotatedObject.hideOthers);
+                  if (shouldHideOthers) {
+                    for (let i = 0; i < frameWithObjects.objects.length; i++) {
+                      let object = frameWithObjects.objects[i];
+                      let annotatedObject = object.annotatedObject;
+                      if (!annotatedObject.hideOthers) {
+                        annotatedObject.dom.style.display = 'none';
+                      }
+                    }
+                  }
+
+                  slider.setPosition(frameNumber);
+
+                  resolve();
+              });
+          });
+        },
+
+        done: function() {
+          // this.currentFrame = 0;
+          this.isPlaying = false;
+          this.viewed = true;
+
+          playButton.disabled = false;
+          playButton.style.display = 'inline-block';
+          pauseButton.disabled = true;
+          pauseButton.style.display = 'none';
+        }
+      };
+
+      function clearAllAnnotatedObjects() {
+        let len = annotatedObjectsTracker.annotatedObjects.length;
+        for (let i = 0; i < len; i++) {
+          clearAnnotatedObject(0);
+        }
+      }
+
+      function clearAnnotatedObject(i) {
+        let annotatedObject = annotatedObjectsTracker.annotatedObjects[i];
+        annotatedObject.controls.remove();
+        $(annotatedObject.dom).remove();
+        annotatedObjectsTracker.annotatedObjects.splice(i, 1);
+      }
+
+      function clearAllDOMAnnotatedObjects() {
+        for (let i = 0; i < annotatedObjectsTracker.annotatedObjects.length; i++) {
+          clearDOMAnnotatedObject(i);
+        }
+      }
+
+      function clearDOMAnnotatedObject(i) {
+        let annotatedObject = annotatedObjectsTracker.annotatedObjects[i];
+        annotatedObject.dom.style.display = 'none';
+        annotatedObject.visible.prop('checked', false);
+      }
+
+      function renderDashedAllDOMAnnotatedObjects() {
+        for (let i = 0; i < annotatedObjectsTracker.annotatedObjects.length; i++) {
+          annotatedObjectsTracker.annotatedObjects[i].dom.style.borderStyle = 'dashed';
+        }
+      }
+
+      videoFile.addEventListener('change', extractionFileUploaded, false);
+      zipFile.addEventListener('change', extractionFileUploaded, false);
+      jsonFile.addEventListener('change', importJson, false);
+      playButton.addEventListener('click', playClicked, false);
+      pauseButton.addEventListener('click', pauseClicked, false);
+      downloadFramesButton.addEventListener('click', downloadFrames, false);
+      generateJsonLink.addEventListener('click', generateJson, false);
+
+      function playClicked() {
+        player.play();
+      }
+
+      function pauseClicked() {
+        player.pause();
+      }
+
+      function downloadFrames() {
+        let zip = new JSZip();
+
+        alert('Not implemented.');
+        return;
+
+        let processed = 0;
+        let totalFrames = framesManager.frames.totalFrames();
+        for (let i = 0; i < totalFrames; i++) {
+          framesManager.frames.getFrame(i).then((blob) => {
+            zip.file(i + '.jpg', blob);
+
+            processed++;
+            if (processed == totalFrames) {
+              window.onbeforeunload = null;
+              let writeStream = streamSaver.createWriteStream('extracted-frames.zip').getWriter();
+              zip.generateInternalStream({type: 'uint8array', streamFiles: true})
+                 .on('data', data => writeStream.write(data))
+                 .on('end', () => writeStream.close().then(() => { window.onbeforeunload = beforeunload; }))
+                 .resume();
+            }
+          });
+        }
+      }
+
+      function initializeCanvasDimensions(width, height) {
+        doodle.style.width = width + 'px';
+        doodle.style.height = height + 'px';
+        canvas.width = width;
+        canvas.height = height;
+        sliderElement.style.width = width + 'px';
+      }
+
+      function extractionFileUploaded() {
+        if (this.files.length != 1) {
+          return;
+        }
+        // console.log(this.files);
+        videoFileName = this.files[0].name;
+
+        videoFile.disabled = true;
+        zipFile.disabled = true;
+        jsonFile.disabled = true;
+        downloadFramesButton.disabled = true;
+        generateJsonButton.disabled = true;
+        clearAllAnnotatedObjects();
+        slider.reset();
+        player.initialize();
+
+        let promise;
+        if (this == videoFile) {
+          promise = extractFramesFromVideo(video, canvas, config, this.files[0]);
+        } else {
+          promise = extractFramesFromZip(config, this.files[0]);
+        }
+
+        promise.then((frames) => {
+          // console.log(frames);
+          // console.log('Extraction completed. ' + frames.totalFrames() + ' frames captured.');
+          extractionProgressElement.innerHTML = 'Extraction completed. ' + frames.totalFrames() + ' frames captured.';
+          if (frames.totalFrames() > 0) {
+            videoDimensionsElement.innerHTML = 'Video dimensions determined: ' + frames.width + 'x' + frames.height;
+            initializeCanvasDimensions(frames.width, frames.height);
+            // frames.getFrame(0).then(() => {
+            frames.seekVideoAndGetFrame(0).then(() => {
+
+                framesManager.set(frames);
+                slider.init(
+                  0,
+                  framesManager.frames.totalFrames() - 1,
+                  (frameNumber) => player.seek(frameNumber)
+                );
+                player.ready();
+                currentFrameElement.innerHTML = '' + 0;
+
+                jsonFile.disabled = false;
+                playButton.disabled = false;
+                downloadFramesButton.disabled = false;
+                generateJsonButton.disabled = false;
+
+            });
+          }
+
+          videoFile.disabled = false;
+          zipFile.disabled = false;
+        });
+      }
+
+      function removeActiveClass() {
+        $('.bbox.active').removeClass('active');
+      }
+
+      function interactify(dom, onChange) {
+        // dom.style.color = colors[(annotatedObjectsTracker.annotatedObjects.length - 1) % colors.length];
+        dom.style.borderColor = colors[(annotatedObjectsTracker.annotatedObjects.length - 1) % colors.length];
+        dom.style.backgroundColor = colors_bg[(annotatedObjectsTracker.annotatedObjects.length - 1) % colors_bg.length];
+        dom.onclick = () => {
+          dom.style.zIndex = ++currentZindex;
+          // console.log(dom.style.zIndex);
+          removeActiveClass();
+          $(dom).addClass('active')
+        };
+        // console.log(dom.style.zIndex);
+        let bbox = $(dom);
+        bbox.addClass('bbox');
+
+        let createHandleDiv = (className, color='rgba(255, 0, 0, .5)') => {
+          let handle = document.createElement('div');
+          handle.className = className;
+          handle.style.borderColor = color;
+          handle.style.backgroundColor = color;
+          bbox.append(handle);
+          return handle;
+        };
+
+        let handleColor = colors_hl[(annotatedObjectsTracker.annotatedObjects.length - 1) % colors_hl.length];
+
+        bbox.resizable({
+          containment: 'parent',
+          handles: {
+            n: createHandleDiv('ui-resizable-handle ui-resizable-n', handleColor),
+            s: createHandleDiv('ui-resizable-handle ui-resizable-s', handleColor),
+            e: createHandleDiv('ui-resizable-handle ui-resizable-e', handleColor),
+            w: createHandleDiv('ui-resizable-handle ui-resizable-w', handleColor),
+            ne: createHandleDiv('ui-resizable-handle ui-resizable-ne', handleColor),
+            nw: createHandleDiv('ui-resizable-handle ui-resizable-nw', handleColor),
+            se: createHandleDiv('ui-resizable-handle ui-resizable-se', handleColor),
+            sw: createHandleDiv('ui-resizable-handle ui-resizable-sw', handleColor)
+          },
+          stop: (e, ui) => {
+            let position = bbox.position();
+            onChange(Math.round(position.left), Math.round(position.top), Math.round(bbox.width()), Math.round(bbox.height()));
+          }
+        });
+
+        bbox.draggable({
+          containment: 'parent',
+          handle: createHandleDiv('handle center-drag', handleColor),
+          stop: (e, ui) => {
+            let position = bbox.position();
+            onChange(Math.round(position.left), Math.round(position.top), Math.round(bbox.width()), Math.round(bbox.height()));
+          }
+        });
+
+        let textDiv = document.createElement('div');
+        bbox.append(textDiv);
+      }
+
+      let mouse = {
+        x: 0,
+        y: 0,
+        startX: 0,
+        startY: 0
+      };
+
+      let tmpAnnotatedObject = null;
+
+      doodle.onmousemove = function (e) {
+        let ev = e || window.event;
+        if (ev.pageX) {
+          mouse.x = ev.pageX;
+          mouse.y = ev.pageY;
+        } else if (ev.clientX) {
+          mouse.x = ev.clientX;
+          mouse.y = ev.clientY;
+        }
+        mouse.x -= doodle.offsetLeft;
+        mouse.y -= doodle.offsetTop;
+
+        if (tmpAnnotatedObject !== null) {
+          tmpAnnotatedObject.width = Math.abs(mouse.x - mouse.startX);
+          tmpAnnotatedObject.height = Math.abs(mouse.y - mouse.startY);
+          tmpAnnotatedObject.x = (mouse.x - mouse.startX < 0) ? mouse.x : mouse.startX;
+          tmpAnnotatedObject.y = (mouse.y - mouse.startY < 0) ? mouse.y : mouse.startY;
+
+          tmpAnnotatedObject.dom.style.width = tmpAnnotatedObject.width + 'px';
+          tmpAnnotatedObject.dom.style.height = tmpAnnotatedObject.height + 'px';
+          tmpAnnotatedObject.dom.style.left = tmpAnnotatedObject.x + 'px';
+          tmpAnnotatedObject.dom.style.top = tmpAnnotatedObject.y + 'px';
+        }
+      };
+
+      // $(doodle).contextmenu(function(ev) {
+      //   ev.preventDefault();
+      //   // alert('success!');
+      //
+      // });
+
+      doodle.onclick = function (e) {
+        if (doodle.style.cursor != 'crosshair') {
+          return;
+        }
+
+        if (tmpAnnotatedObject != null) {
+          let annotatedObject = new AnnotatedObject();
+          annotatedObject.dom = tmpAnnotatedObject.dom;
+          let bbox = new BoundingBox(tmpAnnotatedObject.x, tmpAnnotatedObject.y, tmpAnnotatedObject.width, tmpAnnotatedObject.height);
+          annotatedObject.add(new AnnotatedFrame(player.currentFrame, bbox, true));
+          annotatedObjectsTracker.annotatedObjects.push(annotatedObject);
+          tmpAnnotatedObject = null;
+
+          interactify(
+            annotatedObject.dom,
+            (x, y, width, height) => {
+              let bbox = new BoundingBox(x, y, width, height);
+              annotatedObject.add(new AnnotatedFrame(player.currentFrame, bbox, true, annotatedObject.visible.prop('checked'), annotatedObject.behaviour[0].value));
+            }
+          );
+
+          addAnnotatedObjectControls(annotatedObject, annotatedObjectsTracker.annotatedObjects.length - 1);
+
+          $(annotatedObject.dom).children(':eq(9)').text(annotatedObject.behaviour[0].value);
+
+          doodle.style.cursor = 'default';
+        } else {
+          mouse.startX = mouse.x;
+          mouse.startY = mouse.y;
+
+          let dom = newBboxElement();
+          dom.style.left = mouse.x + 'px';
+          dom.style.top = mouse.y + 'px';
+          tmpAnnotatedObject = { dom: dom };
+          tmpAnnotatedObject.dom.style.zIndex = ++currentZindex;
+          // console.log(tmpAnnotatedObject.dom.style.zIndex);
+        }
+      };
+
+      function newBboxElement() {
+          removeActiveClass();
+          let dom = document.createElement('div');
+          dom.className = 'bbox active';
+          doodle.appendChild(dom);
+          return dom;
+      }
+
+      function addAnnotatedObjectControls(annotatedObject, colorIndex) {
+      //   let name = $('<input type="text" value="Name?" />');
+      //   if (annotatedObject.name) {
+      //     name.val(annotatedObject.name);
+      //   }
+      //   name.on('change keyup paste mouseup', function() {
+      //     annotatedObject.name = this.value;
+      //   });
+
+        let id = $('<input type="text" placeholder="ID?" style="margin-bottom: 5px;" />');
+        if (annotatedObject.id !== null) {
+          id.val(annotatedObject.id);
+        }
+        id.on('change keyup paste mouseup', function() {
+          annotatedObject.id = this.value;
+        });
+
+        let visibleLabel = $('<label>');
+        let visible = $('<input class="visible-flag" type="checkbox" checked="checked" style="margin-bottom: 5px;" />');
+        annotatedObject.visible = visible;
+        visible.change(function() {
+          annotatedObject.dom.style.display = 'block';
+          let bbox;
+          let frame;
+          let jquery = $(annotatedObject.dom);
+          let position = jquery.position();
+          bbox = new BoundingBox(Math.round(position.left), Math.round(position.top), Math.round(jquery.width()), Math.round(jquery.height()));
+          frame = new AnnotatedFrame(player.currentFrame, bbox, true, this.checked, annotatedObject.behaviour[0].value);
+          if (this.checked) {
+            frame.visible = true;
+          }
+          else {
+            annotatedObject.dom.style.display = 'none';
+            frame.visible = false;
+          }
+          annotatedObject.add(frame);
+        });
+        visibleLabel.append(visible);
+        visibleLabel.append('Is visible?');
+
+        let behaviourLabel = $('<label>');
+        let behaviour = $(
+          '<select style="margin-bottom: 5px;">' +
+            '<option value="lying">lying</option>' +
+            '<option value="sitting">sitting</option>' +
+            '<option value="standing">standing</option>' +
+            '<option value="moving">moving</option>' +
+            '<option value="investigating">investigating</option>' +
+            '<option value="feeding">feeding</option>' +
+            '<option value="defecating">defecating</option>' +
+            '<option value="playing">playing</option>' +
+            '<option value="other" selected="selected">other</option>' +
+          '</select>'
+        );
+        let annotatedFrame = annotatedObject.get(player.currentFrame);
+        annotatedObject.behaviour = behaviour;
+        if (annotatedFrame !== null)
+          behaviour[0].value = annotatedFrame.behaviour;
+        behaviour.change(function() {
+          // console.log(this.value);
+          let bbox;
+          let frame;
+          let jquery = $(annotatedObject.dom);
+          let position = jquery.position();
+          bbox = new BoundingBox(Math.round(position.left), Math.round(position.top), Math.round(jquery.width()), Math.round(jquery.height()));
+          frame = new AnnotatedFrame(player.currentFrame, bbox, true, annotatedObject.visible.prop('checked'), this.value);
+          annotatedObject.add(frame);
+          jquery.children(':eq(9)').text(this.value);
+        });
+        behaviourLabel.append('Behaviour: ');
+        behaviourLabel.append(behaviour);
+
+        // let hideLabel = $('<label>');
+        // let hide = $('<input type="checkbox" />');
+        // hide.change(function() {
+        //   annotatedObject.hideOthers = this.checked;
+        // });
+        // hideLabel.append(hide);
+        // hideLabel.append('Hide others?');
+
+        let del = $('<input type="button" value="Delete" style="margin-bottom: 5px;" />');
+        del.click(function() {
+          if (!confirm("Do you really want to delete this annotation?"))
+            return false;
+
+          for (let i = 0; annotatedObjectsTracker.annotatedObjects.length; i++) {
+            if (annotatedObject === annotatedObjectsTracker.annotatedObjects[i]) {
+              clearAnnotatedObject(i);
+              break;
+            }
+          }
+        });
+
+        let div = $('<div class="object-controls"></div>');
+        div.css({
+          'border-color': colors[colorIndex % colors.length],
+          'background-color': colors_bg[colorIndex % colors_bg.length]
+        });
+        // div.append(name);
+        // div.append($('<br />'));
+        div.append(id);
+        div.append($('<br />'));
+        div.append(visibleLabel);
+        div.append($('<br />'));
+        div.append(behaviourLabel);
+        div.append($('<br />'));
+        // div.append(hideLabel);
+        // div.append($('<br />'));
+        div.append(del);
+
+        annotatedObject.controls = div;
+
+        $('#objects').append(div);
+      }
+
+      function generateJson() {
+        if (fullVideoFilePath.value.length == 0){
+          if (!confirm("full video file path/video identifier is not filled in!\nDo you want to proceed anyway?"))
+            return;
+        }
+        let objects = [];
+        for (let i = 0; i < annotatedObjectsTracker.annotatedObjects.length; i++) {
+          let obj = annotatedObjectsTracker.annotatedObjects[i];
+          objects.push({
+            "frames": obj.frames,
+            // "name": obj.name,
+            "id": obj.id,
+          });
+        }
+        let output = {
+          "videoFileName": videoFileName,
+          "fullVideoFilePath": fullVideoFilePath.value,
+          "stepSize": config['stepSize'],
+          "config": config,
+          "objects": objects
+        };
+
+        let outputStr = JSON.stringify(output);
+        this.href = 'data:plain/text,' + outputStr;
+      }
+
+      function importJson() {
+        if (this.files.length !== 1) {
+          return;
+        }
+
+        var reader = new FileReader();
+
+        reader.onload = (e) => {
+          if (e.target.readyState !== 2) {
+            return;
+          }
+
+          if (e.target.error) {
+            throw 'file reader error';
+          }
+
+          if (confirm("Do you want to delete previous annotations?") === true) {
+            clearAllAnnotatedObjects();
+          }
+
+          player.seek(0);
+
+          let json = JSON.parse(e.target.result);
+          videoFileName = json['videoFileName'];
+          fullVideoFilePath.value = json['fullVideoFilePath'];
+          let objects = json['objects'];
+          for (let i = 0; i < objects.length; i++) {
+            let object = objects[i];
+            // let name = object['name'];
+            let id = object['id'];
+
+            let annotatedObject = new AnnotatedObject();
+            // annotatedObject.name = name;
+            annotatedObject.id = id;
+            annotatedObject.dom = newBboxElement();
+            annotatedObject.dom.style.display = 'none';
+            annotatedObjectsTracker.annotatedObjects.push(annotatedObject);
+
+            interactify(
+              annotatedObject.dom,
+              (x, y, width, height) => {
+                let bbox = new BoundingBox(x, y, width, height);
+                annotatedObject.add(new AnnotatedFrame(player.currentFrame, bbox, true, annotatedObject.visible.prop('checked'), annotatedObject.behaviour[0].value));
+              }
+            );
+
+            addAnnotatedObjectControls(annotatedObject, i);
+
+            // let lastFrame = -1;
+            let annotatedFrames = object['frames'];
+            for (let j = 0; j < annotatedFrames.length; j++) {
+              let frame = annotatedFrames[j];
+              let frameNumber = frame['frameNumber'];
+              let isGroundTruth = frame['isGroundTruth'];
+              let visible = frame['visible'];
+              let behaviour = frame['behaviour'];
+              let x = frame['bbox']['x'];
+              let y = frame['bbox']['y'];
+              let width = frame['bbox']['width'];
+              let height = frame['bbox']['height'];
+
+
+              let bbox = new BoundingBox(x, y, width, height);
+              let annotatedFrame = new AnnotatedFrame(frameNumber, bbox, isGroundTruth, visible, behaviour);
+              annotatedObject.add(annotatedFrame);
+
+              if (!visible)
+                annotatedObject.dom.style.display = 'none';
+                annotatedObject.visible.prop('checked', false);
+
+            }
+
+          }
+        };
+
+        reader.readAsText(this.files[0]);
+      }
+
+      function findActiveAnnotatedObject() {
+        let index = null;
+        let object = null;
+        for (let i = 0; i < annotatedObjectsTracker.annotatedObjects.length; i++) {
+          let annotatedObject = annotatedObjectsTracker.annotatedObjects[i];
+          if ($(annotatedObject.dom).hasClass('active')) {
+            index = i;
+            object = annotatedObject;
+            break;
+          }
+        }
+        return {'index': index, 'object': object}
+      }
+
+      // Keyboard shortcuts
+      window.onkeydown = function(e) {
+        let preventDefault = true;
+
+        if (config.consoleLog === true)
+          console.log(e);
+
+
+        if ($("input").is(':focus')) {
+          preventDefault = false;
+        }
+        else if (e.key === " ") { // space
+          player.toogle();
+        }
+        else if (e.key === "+") { // +
+          doodle.style.cursor = 'crosshair';
+        }
+        else if (e.key === "d") { // d
+          if (darkMode === false) {
+            var sheet_dm = document.createElement('style');
+            sheet_dm.id = 'darkModeStylesheet';
+            sheet_dm.innerHTML = "html, body {background-color: #282828; color: #eee;}";
+            document.body.appendChild(sheet_dm);
+            darkMode = true;
+          }
+          else {
+            var sheet_dm_ToBeRemoved = document.getElementById('darkModeStylesheet');
+            var sheet_dm_Parent = sheet_dm_ToBeRemoved.parentNode;
+            sheet_dm_Parent.removeChild(sheet_dm_ToBeRemoved);
+            darkMode = false;
+          }
+        }
+        else if (e.key === "h") { // h
+          if (currentVisibility === true) {
+            var sheet = document.createElement('style');
+            sheet.id = 'hideBBoxStylesheet';
+            sheet.innerHTML = ".bbox:not(.active), .bbox:not(.active) > div {display: none!important;}\n" +
+                    "#doodle video {box-shadow: 0 0 0px 5px #8f1b1b;}";
+            document.body.appendChild(sheet);
+            currentVisibility = false;
+          }
+          else {
+            var sheetToBeRemoved = document.getElementById('hideBBoxStylesheet');
+            var sheetParent = sheetToBeRemoved.parentNode;
+            sheetParent.removeChild(sheetToBeRemoved);
+            currentVisibility = true;
+          }
+        }
+        else if (e.key === "Escape") { // escape
+          if (tmpAnnotatedObject != null) {
+            doodle.removeChild(tmpAnnotatedObject.dom);
+            tmpAnnotatedObject = null;
+          }
+
+          doodle.style.cursor = 'default';
+        }
+        else if (e.key === "ArrowLeft") { // left
+          player.seek(player.currentFrame - 1);
+        }
+        else if (e.key === "ArrowRight") { // right
+          player.seek(player.currentFrame + 1);
+        }
+        else if (e.key === "[") { // [
+          let activeAnnotatedObject = findActiveAnnotatedObject().object;
+          if (config.consoleLog === true)
+            console.log(activeAnnotatedObject);
+          if (activeAnnotatedObject !== null) {
+            let prevFrame = activeAnnotatedObject.getPrev(player.currentFrame);
+            // let nextFrame = activeAnnotatedObject.getNext(player.currentFrame);
+            if (config.consoleLog === true) {
+              console.log(prevFrame);
+              // console.log(nextFrame);
+            }
+            if (prevFrame !== null)
+              player.seek(prevFrame.frameNumber);
+          }
+        }
+        else if (e.key === "]") { // ]
+          let activeAnnotatedObject = findActiveAnnotatedObject().object;
+          if (config.consoleLog === true)
+            console.log(activeAnnotatedObject);
+          if (activeAnnotatedObject !== null) {
+            // let prevFrame = activeAnnotatedObject.getPrev(player.currentFrame);
+            let nextFrame = activeAnnotatedObject.getNext(player.currentFrame);
+            if (config.consoleLog === true) {
+              // console.log(prevFrame);
+              console.log(nextFrame);
+            }
+            if (nextFrame !== null)
+              player.seek(nextFrame.frameNumber);
+          }
+        }
+        else if (e.key === ",") { // ,
+          let activeAnnotatedObject = findActiveAnnotatedObject().object;
+          if (config.consoleLog === true)
+            console.log(activeAnnotatedObject);
+          if (activeAnnotatedObject !== null) {
+            let prevFrame = activeAnnotatedObject.getPrev(player.currentFrame);
+            if (config.consoleLog === true) {
+              console.log(prevFrame);
+            }
+            if (prevFrame !== null)
+            {
+              let frame_number = Math.floor((prevFrame.frameNumber + player.currentFrame) / 2);
+              player.seek(frame_number);
+            }
+
+          }
+        }
+        else if (e.key === ".") { // .
+          let activeAnnotatedObject = findActiveAnnotatedObject().object;
+          if (config.consoleLog === true)
+            console.log(activeAnnotatedObject);
+          if (activeAnnotatedObject !== null) {
+            let nextFrame = activeAnnotatedObject.getNext(player.currentFrame);
+            if (config.consoleLog === true) {
+              console.log(nextFrame);
+            }
+            if (nextFrame !== null)
+            {
+              let frame_number = Math.floor((nextFrame.frameNumber + player.currentFrame) / 2);
+              player.seek(frame_number);
+            }
+
+          }
+        }
+        else if (e.key === "s") { // s
+          let activeAnnotatedObject = findActiveAnnotatedObject().object;
+          if (config.consoleLog === true)
+            console.log(activeAnnotatedObject);
+          if (activeAnnotatedObject !== null) {
+            let bbox;
+            let frame;
+            let jquery = $(activeAnnotatedObject.dom);
+            let position = jquery.position();
+            bbox = new BoundingBox(Math.round(position.left), Math.round(position.top), Math.round(jquery.width()), Math.round(jquery.height()));
+            frame = new AnnotatedFrame(player.currentFrame, bbox, true, activeAnnotatedObject.visible.prop('checked'), activeAnnotatedObject.behaviour[0].value);
+            activeAnnotatedObject.add(frame);
+          }
+        }
+
+        else {
+          preventDefault = false;
+        }
+
+        if (preventDefault) {
+          if (config.consoleLog === true)
+            console.log('e.preventDefault()');
+          e.preventDefault();
+        }
+      };
+
+    </script>
+  </body>
+</html>

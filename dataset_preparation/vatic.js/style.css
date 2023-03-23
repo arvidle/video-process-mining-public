@@ -1,0 +1,207 @@
+html, body {
+    font-family: sans-serif;
+    font-size: 0.975em;
+}
+
+h1 {
+    margin-left: 5px;
+    margin-right: 5px;
+}
+
+.output {
+    font-family: monospace;
+    font-weight: bold;
+}
+
+#doodle {
+    position: relative;
+    width: 0px;
+    height: 0px;
+    z-index: 2;
+}
+
+#canvas {
+    z-index: 1;
+}
+
+.bbox {
+    /*border: 2px solid grey;*/
+    border: 1px solid grey;
+    /*box-sizing: border-box;*/
+    position: absolute;
+    z-index: 3;
+    color: white;
+    text-align: center;
+    /*font-size: 1.12em;*/
+    text-shadow: 0 0 3px black;
+    /*transition: box-shadow 1s;*/
+    opacity: 0.4;
+    font-size: 0;
+}
+
+.bbox > div {
+    display: none;
+}
+
+/* this works only on Chrome */
+/*.bbox:active {
+  box-shadow: 0px 0px 10px 5px white;
+  transition: box-shadow 0.3s;
+}*/
+.bbox.active {
+    opacity: 1;
+    font-size: 1.12em;
+    border-width: 2px;
+}
+
+.bbox.active > div {
+    display: inherit;
+}
+
+.object-controls {
+    border: 2px solid grey;
+    display: inline-block;
+    margin: 5px;
+    padding: 10px;
+    box-shadow: 0 0 2px 0;
+}
+
+div.bbox.bbox-legend, div.bbox.bbox-legend:not(active) {
+    position: relative !important;
+    display: inline-block !important;
+    width: 12px;
+    height: 12px;
+    margin-bottom: 7px;
+    margin-right: 3px;
+    vertical-align: text-top;
+    border-width: 2px !important;
+    opacity: 1 !important;
+}
+
+p {
+    margin: 0.7em 0 0.3em;
+}
+
+.handle, .ui-resizable-handle {
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 0, 0, .5);
+    background-color: rgba(255, 0, 0, .5);
+    position: absolute;
+}
+
+.center-drag {
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    cursor: move;
+}
+
+.ui-resizable-n {
+    left: 50%;
+    transform: translate(-50%, 0);
+    margin: -8px 0;
+    cursor: n-resize;
+}
+
+.ui-resizable-s {
+    left: 50%;
+    bottom: 0%;
+    transform: translate(-50%, 0);
+    margin: -8px 0;
+    cursor: s-resize;
+}
+
+.ui-resizable-w {
+    top: 50%;
+    transform: translate(0, -50%);
+    margin: 0 -8px;
+    cursor: w-resize;
+}
+
+.ui-resizable-e {
+    right: 0%;
+    top: 50%;
+    transform: translate(0, -50%);
+    margin: 0 -8px;
+    cursor: e-resize;
+}
+
+.ui-resizable-ne {
+    top: 0;
+    right: 0;
+    /*transform: translate(-50%, -50%);*/
+    margin: -8px -8px;
+    cursor: ne-resize;
+}
+
+.ui-resizable-nw {
+    top: 0;
+    left: 0;
+    /*transform: translate(-50%, -50%);*/
+    margin: -8px -8px;
+    cursor: nw-resize;
+}
+
+.ui-resizable-sw {
+    bottom: 0;
+    left: 0;
+    /*transform: translate(0, -50%);*/
+    margin: -8px -8px;
+    cursor: sw-resize;
+}
+
+.ui-resizable-se {
+    bottom: 0;
+    right: 0;
+    /*transform: translate(0, -50%)*/;
+    margin: -8px -8px;
+    cursor: se-resize;
+}
+
+.ui-slider {
+    position: relative;
+    text-align: left;
+    height: .8em;
+    margin: 12px 0 8px;
+}
+
+.ui-slider-handle {
+    position: absolute;
+    z-index: 2;
+    width: 1.2em;
+    height: 1.2em;
+    cursor: default;
+    -ms-touch-action: none;
+    touch-action: none;
+    top: -.3em;
+    margin-left: -.6em;
+}
+
+.ui-widget.ui-widget-content {
+    border: 1px solid #d3d3d3;
+}
+
+.ui-state-default {
+    border: 1px solid #d3d3d3;
+    background-color: #e6e6e6;
+}
+
+.ui-state-hover, .ui-state-focus {
+    border: 1px solid #999999;
+    background-color: #dadada;
+}
+
+.ui-state-active {
+    border: 1px solid #aaaaaa;
+    background-color: #ffffff;
+}
+
+.ui-state-disabled {
+    opacity: .35;
+}
+
+.ui-corner-all {
+    border-radius: 4px;
+}

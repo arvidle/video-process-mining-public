@@ -1,0 +1,36 @@
+item {
+  name: "lying"
+  id: 1
+}
+item {
+  name: "sitting"
+  id: 2
+}
+item {
+  name: "standing"
+  id: 3
+}
+item {
+  name: "moving"
+  id: 4
+}
+item {
+  name: "investigating"
+  id: 5
+}
+item {
+  name: "feeding"
+  id: 6
+}
+item {
+  name: "defecating"
+  id: 7
+}
+item {
+  name: "playing"
+  id: 8
+}
+item {
+  name: "other"
+  id: 9
+}

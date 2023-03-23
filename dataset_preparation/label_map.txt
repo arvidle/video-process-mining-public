@@ -1,0 +1,9 @@
+1: lying
+2: sitting
+3: standing
+4: moving
+5: investigating
+6: feeding
+7: defecating
+8: playing
+9: other
