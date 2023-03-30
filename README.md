@@ -27,5 +27,7 @@ The training datasets, weights of finetuned models and inference results for the
 
 ## Licenses
 
+This repository is licensed under the CC-BY 4.0 license as included in [LICENSE.txt](LICENSE.txt).
+
 We include OC_Sort under the terms of the MIT license.
 ByteTrack cannot be included directly here, because the implementation we used does not provide a suitable license.
