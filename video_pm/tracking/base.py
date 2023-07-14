@@ -83,6 +83,21 @@ class TrackingResults:
 
         return cls(tracking)
 
+    def to_mot_format(self) -> pd.DataFrame:
+        # MOT16 format is a csv with columns: <frame>, <id>, <bb_left>, <bb_top>, <bb_width>, <bb_height>, <conf>, <x>, <y>, <z>
+        # In 2D, x, y, and z are ignored and can be filled with -1
+        width = self.tracking.x2 - self.tracking.x1
+        height = self.tracking.y2 - self.tracking.y1
+        df_out = self.tracking[["frame", "track_id", "x1", "y1", "score"]].rename(columns={"track_id": "id", "x1": "bb_left", "y1": "bb_top", "score": "conf"}).copy()
+        df_out["bb_width"] = width
+        df_out["bb_height"] = height
+        # Fill x, y and z with -1 as we are doing 2D here
+        df_out["x"] = -1
+        df_out["y"] = -1
+        df_out["z"] = -1
+        # Put the columns into correct order
+        df_out = df_out[["frame", "id", "bb_left", "bb_top", "bb_width", "bb_height", "conf", "x", "y", "z"]]
+        return df_out
 
 class Tracker:
     """Base class for a video object tracker"""

@@ -29,7 +29,7 @@ axes[3].set_ylabel("Simplicity")
 plt.tight_layout()
 plt.savefig("boxplots.svg")
 
-ax = evaluation_df.groupby("n_clusters").mean().plot(figsize=(5, 4), style=["ks-", "k^-", "kx-", "ko-"], markersize=5)
+ax = evaluation_df.rename(columns={"fitness": "Fitness", "precision": "Precision", "f1": "F1-Score", "simplicity": "Simplicity"}).groupby("n_clusters").mean().plot(figsize=(5, 4), style=["ks-", "k^-", "kx-", "ko-"], markersize=5)
 ax.set_ylim((0.5, 1.0))
 ax.set_xticks(np.arange(1, 21, 1))
 ax.set_xlabel("Number of clusters")

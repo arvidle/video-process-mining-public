@@ -70,7 +70,7 @@ class BaselineAbstractor:
             changepoints = self.collapse_processed_trace(trace)
             # Important: If we want to keep information to correlate the event log back to the source videos,
             # more columns need to be kept here.
-            activity_logs.append(changepoints[["case_id", "t", "activity"]])
+            activity_logs.append(changepoints[["case_id", "t", "activity", "x1", "y1", "x2", "y2"]])
 
         event_log_df = pd.concat(activity_logs, axis=0)
         event_log_df["case_id"] = event_log_df["case_id"].astype(int)
