@@ -13,7 +13,7 @@ Download the evaluation data, and unpack the zipfile into the root directory of 
 
 ## Step 1: Internal evaluation
 
-To reproduce internal validation, run [evaluation/cross_validation.py](evaluation/cross_validation.py).
+To reproduce internal validation, run [evaluation/cross_validation.py](evaluation/cross_validation.py) (with the abstraction smoothing parameter set to 20).
 The conformance checking results are output to a .csv file in the same directory, and can be visualized using [evaluation/plot_evaluation.py](evaluation/plot_evaluation.py).
 
 ## Step 2: External evaluation
@@ -23,7 +23,7 @@ We used [Disco](https://fluxicon.com/disco/) to discover the models shown in the
 
 # Reproduction of Results for the Article "Describing behavior sequences of fattening pigs using process mining on video data and automated pig behavior recognition"
 
-Use the scripts in [evaluation](evaluation) to reproduce the figures. To reproduce the models, import the XES-formatted event log [case_study/clustered_log_10s.xes](clustered_log_10s.xes) into Disco.
+Use the scripts in [evaluation](evaluation) to reproduce the figures. To reproduce the models, import the XES-formatted event log [case_study/clustered_log_10s.xes](clustered_log_10s.xes) into Disco. Note that this event log used a smoothing parameter of 10 in the event abstraction, as opposed to 20 in the BPM Forum paper.
 
 # Data availability
 
