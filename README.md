@@ -21,9 +21,15 @@ The conformance checking results are output to a .csv file in the same directory
 The event log used for external evaluation and additional visualizations are provided in the directory [case_study](case_study).
 We used [Disco](https://fluxicon.com/disco/) to discover the models shown in the paper.
 
-# Reproduction of Results for the Article "Describing behavior sequences of fattening pigs using process mining on video data and automated pig behavior recognition"
+# "Describing behavior sequences of fattening pigs using process mining on video data and automated pig behavior recognition"
+
+## Reproduction of Results
 
 Use the scripts in [evaluation](evaluation) to reproduce the figures. To reproduce the models, import the XES-formatted event log [case_study/clustered_log_10s.xes](clustered_log_10s.xes) into Disco. Note that this event log used a smoothing parameter of 10 in the event abstraction, as opposed to 20 in the BPM Forum paper.
+
+## Supplementary Materials
+
+Find the process models of all clusters in [supplementary_materials](supplementary_materials)
 
 # Data availability
 
