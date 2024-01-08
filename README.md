@@ -11,6 +11,7 @@ Download the evaluation data, and unpack the zipfile into the root directory of 
 
 # Reproduction of results from the BPM 2023 Forum Paper "Analytics Pipeline for Process Mining on Video Data"
 
+Find the paper here: [https://link.springer.com/chapter/10.1007/978-3-031-41623-1_12](https://link.springer.com/chapter/10.1007/978-3-031-41623-1_12)
 ## Step 1: Internal evaluation
 
 To reproduce internal validation, run [evaluation/cross_validation.py](evaluation/cross_validation.py) (with the abstraction smoothing parameter set to 20).
@@ -22,6 +23,8 @@ The event log used for external evaluation and additional visualizations are pro
 We used [Disco](https://fluxicon.com/disco/) to discover the models shown in the paper.
 
 # "Describing behavior sequences of fattening pigs using process mining on video data and automated pig behavior recognition"
+
+Find the paper here: [https://www.mdpi.com/2077-0472/13/8/1639](https://www.mdpi.com/2077-0472/13/8/1639)
 
 ## Reproduction of Results
 
