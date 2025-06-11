@@ -28,7 +28,7 @@ Find the paper here: [https://www.mdpi.com/2077-0472/13/8/1639](https://www.mdpi
 
 ## Reproduction of Results
 
-Use the scripts in [evaluation](evaluation) to reproduce the figures. To reproduce the models, import the XES-formatted event log [case_study/clustered_log_10s.xes](clustered_log_10s.xes) into Disco. Note that this event log used a smoothing parameter of 10 in the event abstraction, as opposed to 20 in the BPM Forum paper.
+Use the scripts in [evaluation](evaluation) to reproduce the figures. To reproduce the models, import the XES-formatted event log [case_study/clustered_log_10s.xes](case_study/clustered_log_10s.xes) into Disco. Note that this event log used a smoothing parameter of 10 in the event abstraction, as opposed to 20 in the BPM Forum paper.
 
 ## Supplementary Materials
 
